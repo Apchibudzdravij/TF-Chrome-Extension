@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "ArtStation Sourcing Tool",
+  "version": "0.0.16",
+  "description": "Extension to scrap data from ArtStation profiles and organize them in lists",
+  "permissions": ["activeTab", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.artstation.com/*"],
+      "js": ["xlsx.full.min.js", "content.js"]
+    }
+  ],
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "MacCtrl+Shift+U"
+      },
+      "description": "Add current tab's URL"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["xlsx.full.min.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
