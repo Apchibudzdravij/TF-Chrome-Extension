@@ -6,45 +6,52 @@
   <script src="xlsx.full.min.js"></script>
 </head>
 <body>
-  <select id="existingLists"></select>
-  <input type="text" id="comment" placeholder="Add a comment (Optional)" title="Add a comment about the URL">
+  <select id="existingLists">
+    <option value="New list">
+      New list
+    </option>
+    <optgroup label="Saved lists" id="existingListGroup">
+      <option value="old list">
+        New list
+      </option>
+    </optgroup>
+  </select>
+  <input type="text" id="comment" style="display: none" placeholder="Comment (optional)" title="Add a comment about the URL">
 
-  <div class="button-row">
+  <div class="button-row" style="display: none">
+    <button class="importance" id="addStar"><image src="./images/star.svg" /></button>
+    <button class="importance" id="addQuestion"><image src="./images/IconQuestionMark.svg" /></button>
     <button id="addUrl" title="Add the current tab's profile info to the selected list">Add profile</button>
   </div>
 
-  <input type="text" id="newListName" placeholder="New List Name (Optional)" title="Enter a name for a new list or select an existing one">
-
+  <input type="text" id="newListName" placeholder="New List Name (required)" title="Enter a name for a new list or select an existing one">
   <div class="button-row">
-    <button id="deleteList" title="Delete the current list">Delete list</button>
-    <button id="exportToExcel" title="Export current list to Excel file">Export to Excel</button>
-  </div>
-
-  <button id="advancedOptionsToggle" title="Show advanced options">Advanced Options</button>
-  <div id="advancedOptions" style="display: none;">
-    <div class="button-row third-row">
-      <input type="file" id="importFile" style="display:none;">
-      <button id="addFromFile" title="Add saved JSON file to current ones - WORK IN PROGRESS">Add from JSON</button>
-      <button id="importButton" title="Import lists saved as JSON file">Import Lists JSON</button>
-      <button id="exportButton" title="Export lists as JSON file">Export Lists JSON</button>
-    </div>
+    <button id="addList" title="Create a new list">Add list</button>
   </div>
 
   <!-- New UI for Saved Profiles -->
-  <h3>Saved Profiles: <span id="profileCount">0</span></h3>
-  <input type="text" id="searchProfile" placeholder="Search profiles..." title="Search saved profiles.">
-  <div id="profileList">
-      <!-- Profiles will be dynamically added here -->
-  </div>
+  <div id="notNewList" style="display: none">
+    <hr />
+    <h3>Saved Profiles: <span id="profileCount">0</span></h3>
+    <input type="text" id="searchProfile" placeholder="Search profiles..." title="Search saved profiles.">
+    <div id="profileList">
+        <!-- Profiles will be dynamically added here -->
+    </div>
 
-  <div id="footerLinks">
+    <div class="button-row">
+      <button id="deleteList" title="Delete the current list">Delete list</button>
+      <button id="exportToExcel" title="Export current list to Excel file">Export to Excel</button>
+    </div>
+  </div>
+  <hr />
+  <footer id="footerLinks">
     <a href="https://forms.gle/pmUjYypZQ1FJqY8E6" target="_blank">Send Feedback</a>
     | 
 	  <a href="https://checkout.stripe.com/c/pay/cs_live_a1QAlVUxOgtOmI3ki58yEIpd2E1bezdjmOyfTLdbI6VlBfo02lSaDZy2Ob#fidkdWxOYHwnPyd1blppbHNgWjA0S2xMcm5MNDE0czxmMHxnU1drcmRpTTxgYjBPbldJQWl%2Fc0x0NV1CXX1rMEtGUH1HTjBUS1xxc252M1ZCdF1BaWEza1F8VmkyPWloY2ZWcVQzQWpwR00wNTVrVWkwU0dLZicpJ3VpbGtuQH11anZgYUxhJz8nMWJyMnZLPWJhMk1IYlBIPERBJyknd2BjYHd3YHdKd2xibGsnPydtcXF1dj8qKnJgZytxYGlgYndkaCtqd2IqJ3gl" target="_blank" class="tooltip-container">
       Like it? Donations are helpful
       <span class="tooltip-text" data-tooltip="If you've found this extension helpful, please consider donating to keep it running and improving. Thank you!"></span>
     </a>
-  </div>
+  </footer>
   <script src="popup.js"></script>
 </body>
 </html>

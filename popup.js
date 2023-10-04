@@ -1,6 +1,6 @@
-function saveUrlToList(url, comment) {
+function saveUrlToList(comment) {
   
-  document.getElementById('addUrl').disabled = true;
+  document.querySelector('#addUrl').disabled = true;
   
   let selectedList = document.getElementById('existingLists').value;
   let newListName = document.getElementById('newListName').value;
@@ -113,7 +113,7 @@ function showFeedback(message) {
 function populateExistingLists() {
   // Get all keys (list names) from storage
   chrome.storage.sync.get(null, function(items) {
-    let existingListsDropdown = document.getElementById('existingLists');
+    let existingListsDropdown = document.getElementById('existingListGroup');
     
     // Clear the current options in the dropdown
     existingListsDropdown.innerHTML = '';
@@ -148,19 +148,42 @@ function deleteSelectedList() {
   }
 }
 
-document.getElementById('addUrl').addEventListener('click', function() {
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    let currentTab = tabs[0];
-    let currentUrl = currentTab.url;
-    let comment = document.getElementById('comment').value;
+document.querySelector('#existingLists').addEventListener('change', checkIfNewList);
+document.querySelector('#existingLists').addEventListener('click', checkIfNewList);
 
-    saveUrlToList(currentUrl, comment);
+let star = document.querySelector("#addStar");
+let question = document.querySelector("#addQuestion");
+
+star.addEventListener('click', () => {
+  let starIsActive = star.style.backgroundColor == 'gold';
+  let questionIsActive = question.style.backgroundColor == 'gold';
+  if (starIsActive) {
+    star.style.backgroundColor = '#007BFF';
+  } else {
+    star.style.backgroundColor = 'gold';
+    question.style.backgroundColor = '#007BFF';
+  }
+});
+question.addEventListener('click', () => {
+  let questionIsActive = question.style.backgroundColor == 'gold';
+  if (questionIsActive) {
+    question.style.backgroundColor = '#007BFF';
+  } else {
+    question.style.backgroundColor = 'gold';
+    star.style.backgroundColor = '#007BFF';
+  }
+});
+
+document.querySelector('#addUrl').addEventListener('click', function() {
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    let comment = document.getElementById('comment').value;
+    saveUrlToList(comment);
     // Clear the comment field
     document.getElementById('comment').value = '';
   });
 });
 
-document.getElementById('importButton').addEventListener('click', function() {
+/*document.getElementById('importButton').addEventListener('click', function() {
   document.getElementById('importFile').click();
 });
 
@@ -196,7 +219,7 @@ document.getElementById('exportButton').addEventListener('click', function() {
 
     URL.revokeObjectURL(url);
   });
-});
+});*/
 
 // Event listener for the delete button
 document.getElementById('deleteList').addEventListener('click', deleteSelectedList);
@@ -375,7 +398,7 @@ function displaySavedProfiles(listName) {
 }
 
 // Search functionality
-document.getElementById('searchProfile').addEventListener('input', function() {
+document.querySelector('#searchProfile').addEventListener('input', function() {
   let query = this.value.toLowerCase();
   let profiles = document.querySelectorAll('.profileItem');
   profiles.forEach(function(profile) {
@@ -387,7 +410,7 @@ document.getElementById('searchProfile').addEventListener('input', function() {
   });
 });
 
-// Listener to get advanced options in HTML file
+/*// Listener to get advanced options in HTML file
 document.getElementById('advancedOptionsToggle').addEventListener('click', function() {
   let advancedOptions = document.getElementById('advancedOptions');
   if (advancedOptions.style.display === "none") {
@@ -395,10 +418,10 @@ document.getElementById('advancedOptionsToggle').addEventListener('click', funct
   } else {
       advancedOptions.style.display = "none";
   }
-});
+});*/
 
 function updateProfileStatus(url, status) {
-    let listName = document.getElementById('existingLists').value;
+    let listName = document.querySelector('#existingLists').value;
     chrome.storage.sync.get(listName, function(data) {
         let list = data[listName];
         let profile = list.find(p => p.url === url);
@@ -425,3 +448,18 @@ function filterProfiles(status) {
   });
 }
 
+function checkIfNewList() {
+  if (this.value == 'New list'){
+    document.getElementById('newListName').style.display = 'inline-block';
+    document.querySelector('#notNewList').style.display = 'none';
+    document.querySelector('#comment').style.display = 'none';
+    document.querySelectorAll('.button-row')[0].style.display = 'none';
+    document.querySelectorAll('.button-row')[1].style.display = 'flex';
+  } else {
+    document.getElementById('newListName').style.display = 'none';
+    document.querySelector('#notNewList').style.display = 'block';
+    document.querySelector('#comment').style.display = 'inline-block';
+    document.querySelectorAll('.button-row')[0].style.display = 'flex';
+    document.querySelectorAll('.button-row')[1].style.display = 'none';
+  }
+}

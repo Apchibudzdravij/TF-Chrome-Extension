@@ -6,13 +6,12 @@ body {
   overflow: auto;
 }
 
-/* Default line */
 hr {
-  border: 0;  /* remove default border */
-  height: 1px;  /* set height of the line */
-  background-color: #ccc;  /* set color of the line */
-  margin-top: 5px;  /* space above the line */
-  margin-bottom: 10px;  /* space below the line */
+  border: 0;
+  height: 1px;
+  background-color: #007BFF;
+  margin-top: 5px;
+  margin-bottom: 10px;
 }
 
 button, select, input {
@@ -21,14 +20,15 @@ button, select, input {
   border: 1px solid #007BFF;
   background-color: #007BFF;
   color: white;
+  border-radius: 10px;
 }
 .button-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: right;
   margin-bottom: 10px;
 }
 .button-row button {
-  width: 48%; /* Adjusted to fit two buttons side by side with a little gap */
+  width: 62.5%; /* Adjusted to fit two buttons side by side with a little gap */
 }
 .third-row button {
   width: 30%; /* Adjusted to fit three buttons side by side */
@@ -36,15 +36,33 @@ button, select, input {
 button:hover, select:hover, input:hover {
   background-color: #0056b3;
 }
-
+#addList {
+  width: 100%;
+}
+#newListName {
+  max-width: 54.5%;
+}
 
 input[type="text"] {
   background-color: white;
   color: black;
-  width: 100%;
+  width: 92.5%;
 }
 
+#existingLists {
+  display: inline-block;
+  width: 35%;
+  max-width: 35%;
+  margin-right: 1%;
+}
+#comment {
+  width: 54.5%;
+  max-width: 60%;
+}
 
+footer {
+  text-align: center;
+}
 #footerLinks {
   margin-top: 10px;
   font-size: 0.8em;
@@ -57,6 +75,19 @@ input[type="text"] {
   text-decoration: underline;
 }
 
+#addStar, #addQuestion {
+  width: 15%;
+  height: 40px;
+  padding: 0;
+}
+.importance {
+  background-color: #007BFF;
+  margin-right: 3%;
+}
+img {
+  max-width: 100%;
+  max-height: 100%;
+}
 
 #searchProfile {
   margin-top: 10px;
@@ -73,20 +104,6 @@ input[type="text"] {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 5px;
-}
-
-
-#advancedOptionsToggle {
-  width: 100%;
-  margin-top: 10px;
-  background-color: #f0f0f0;
-  color: #333;
-}
-#advancedOptions {
-  margin-top: 10px;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
 }
 
 .profileLinkBtn {
