@@ -1,10 +1,5 @@
 function saveUrlToList(comment) {
-  
   document.querySelector('#addUrl').disabled = true;
-  
-  let selectedList = document.getElementById('existingLists').value;
-  let newListName = document.getElementById('newListName').value;
-  let listName = newListName || selectedList;
 
   // Get the current date and time in CET
   let currentDate = new Date();
@@ -22,71 +17,107 @@ function saveUrlToList(comment) {
 
     // If it matches, reconstruct the URL to be https://www.artstation.com/USER
     if (match) {
-        originalUrl = `https://www.artstation.com/${match[1]}`;
+      originalUrl = `https://www.artstation.com/${match[1]}`;
     }
 
     let profileUrl = originalUrl;
     if (!profileUrl.endsWith('/profile')) {
-        profileUrl += '/profile';
+      profileUrl += '/profile';
     }
 
     // Navigate to the profile page
     chrome.tabs.update(currentTab.id, {url: profileUrl}, function(updatedTab) {
-        // Wait for the tab to be fully loaded before sending the message
-        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-            if (info.status === 'complete' && tabId === updatedTab.id) {
-                chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
-                    let artistInfo = null;
-                    if (response) {
-                        artistInfo = {
-                            name: response.name,
-                            location: response.location,
-                            summary: response.summary,
-                            skills: response.skills,
-                            software: response.software
-                        };
-                    }
-                    // Save the URL with artist info, date, time, and comment
-                    saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
-
-                    // Navigate back to the original URL
-                    chrome.tabs.update(currentTab.id, {url: originalUrl});
-
-                    // Remove the listener after it's executed to avoid multiple calls
-                    chrome.tabs.onUpdated.removeListener(listener);
-                });
+      // Wait for the tab to be fully loaded before sending the message
+      chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+        if (info.status === 'complete' && tabId === updatedTab.id) {
+          chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
+            let artistInfo = null;
+            if (response) {
+              artistInfo = {
+                name: response.name,
+                location: response.location,
+                summary: response.summary,
+                skills: response.skills,
+                software: response.software
+              };
             }
-        });
+            // Save the URL with artist info, date, time, and comment
+            saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
+
+            // Navigate back to the original URL
+            chrome.tabs.update(currentTab.id, {url: originalUrl});
+
+            // Remove the listener after it's executed to avoid multiple calls
+            chrome.tabs.onUpdated.removeListener(listener);
+          });
+        }
+      });
     });
   });
 }
 
 // Helper function to save the URL and associated data to Chrome storage
 function saveToStorage(url, comment, artistInfo, date, time) {
-  let selectedList = document.getElementById('existingLists').value;
-  let newListName = document.getElementById('newListName').value;
-  let listName = newListName || selectedList;
-
+  let listName = document.getElementById('existingLists').value;
   chrome.storage.sync.get(listName, function(data) {
-    let list = data[listName] || [];
-    list.push({
-      url: url,
-      comment: comment,
-      date: date,
-      time: time,
-      artistInfo: artistInfo,
-      status: "Unmarked"  // Default status
-    });
-    let saveObj = {};
-    saveObj[listName] = list;
+    let list = data[listName];
+    for (item in list) {
+      if (list[item].url == url) {
+        if (confirm('Profile already exists in list: ' + listName + '! Override profile?')) {
+          let tempStatus = document.querySelector('#addStar').style.backgroundColor == 'gold'
+            ? 'Yes'
+            : document.querySelector('#addQuestion').style.backgroundColor == 'gold'
+            ? 'To review later'
+            : 'Unmarked';
+          document.querySelector('#addStar').style.backgroundColor = '#007BFF';
+          document.querySelector('#addQuestion').style.backgroundColor = '#007BFF';
+          list[item].comment = comment;
+          list[item].date = date;
+          list[item].time = time;
+          list[item].artistInfo = artistInfo;
+          list[item].status = tempStatus;
+          let saveObj = {};
+          saveObj[listName] = list;
+          chrome.storage.sync.set(saveObj, function() {
+            console.log('URL saved to list:', listName);
+            showFeedback('URL saved successfully!');
+            populateExistingLists();
+            document.getElementById('addUrl').disabled = false;
+          });
+          return;
+        }
+        return;
+      }
+    }
+    let tempStatus = document.querySelector('#addStar').style.backgroundColor == 'gold'
+      ? 'Yes'
+      : document.querySelector('#addQuestion').style.backgroundColor == 'gold'
+      ? 'To review later'
+      : 'Unmarked';
+    document.querySelector('#addStar').style.backgroundColor = '#007BFF';
+    document.querySelector('#addQuestion').style.backgroundColor = '#007BFF';
+  
+    chrome.storage.sync.get(listName, function(data) {
+      let list = data[listName] || [];
+      list.push({
+        url: url,
+        comment: comment,
+        date: date,
+        time: time,
+        artistInfo: artistInfo,
+        status: tempStatus
+      });
+      let saveObj = {};
+      saveObj[listName] = list;
 
-    chrome.storage.sync.set(saveObj, function() {
-      console.log('URL saved to list:', listName);
-      showFeedback('URL saved successfully!');
-      
-      // Refresh the dropdown to reflect the changes
-      populateExistingLists();
-      document.getElementById('addUrl').disabled = false;
+      chrome.storage.sync.set(saveObj, function() {
+        console.log('URL saved to list:', listName);
+        showFeedback('URL saved successfully!');
+              
+        // Refresh the dropdown to reflect the changes
+        populateExistingLists();
+        document.getElementById('addUrl').disabled = false;
+      });
     });
   });
 }
@@ -105,15 +136,15 @@ function showFeedback(message) {
   feedbackDiv.style.borderRadius = '5px';
   document.body.appendChild(feedbackDiv);
 
-  setTimeout(function() {
+  setTimeout(() => {
     document.body.removeChild(feedbackDiv);
   }, 3000);
 }
 
-function populateExistingLists() {
+function populateExistingLists(callback) {
   // Get all keys (list names) from storage
-  chrome.storage.sync.get(null, function(items) {
-    let existingListsDropdown = document.getElementById('existingListGroup');
+  chrome.storage.sync.get(null, items => {
+    let existingListsDropdown = document.querySelector('#existingListGroup');
     
     // Clear the current options in the dropdown
     existingListsDropdown.innerHTML = '';
@@ -127,7 +158,7 @@ function populateExistingLists() {
     }
     
     // After refreshing the dropdown, display the saved profiles for the selected list
-    let selectedList = document.getElementById('existingLists').value;
+    let selectedList = document.querySelector('#existingLists').value;
     if (selectedList) {
         displaySavedProfiles(selectedList);
     }
@@ -135,36 +166,63 @@ function populateExistingLists() {
 }
 
 function deleteSelectedList() {
-  let selectedList = document.getElementById('existingLists').value;
+  let selectedList = document.querySelector('#existingLists').value;
   if (selectedList) {
       // Add a confirmation dialog
       if (confirm('Are you sure you want to delete the entire list? This action cannot be undone.')) {
-          chrome.storage.sync.remove(selectedList, function() {
+          chrome.storage.sync.remove(selectedList, () => {
               console.log('List deleted:', selectedList);
               // Refresh the dropdown to reflect the changes
-              populateExistingLists();
+              populateExistingLists(() => {
+                alert('List deleted successfully!');
+                document.querySelector('#existingLists').change();
+                document.querySelector('#existingLists').click();
+              });
           });
       }
   }
 }
+function createSelectedList() {
+  let newList = document.querySelector('#newListName').value;
+  chrome.storage.sync.get(null, items => {
+    let isNotExisting = true;
+    for (let listName in items) {
+        if (listName == newList) {
+          isNotExisting = false;
+          break;
+        }
+    }
+    if (isNotExisting) {
+      let saveObj = {};
+      saveObj[newList] = [];
+      chrome.storage.sync.set(saveObj, () => {
+        console.log('List created:', newList);
+        populateExistingLists();
+        showFeedback('List created successfully!');
+      });
+    } else {
+      alert('A list with that name already exists!');
+    }
+  });
+}
 
+document.querySelector('#addList').addEventListener('click', createSelectedList);
 document.querySelector('#existingLists').addEventListener('change', checkIfNewList);
-document.querySelector('#existingLists').addEventListener('click', checkIfNewList);
+document.querySelector('#existingLists').onclick = checkIfNewList;
 
 let star = document.querySelector("#addStar");
 let question = document.querySelector("#addQuestion");
 
-star.addEventListener('click', () => {
+star.onclick = () => {
   let starIsActive = star.style.backgroundColor == 'gold';
-  let questionIsActive = question.style.backgroundColor == 'gold';
   if (starIsActive) {
     star.style.backgroundColor = '#007BFF';
   } else {
     star.style.backgroundColor = 'gold';
     question.style.backgroundColor = '#007BFF';
   }
-});
-question.addEventListener('click', () => {
+};
+question.onclick = () => {
   let questionIsActive = question.style.backgroundColor == 'gold';
   if (questionIsActive) {
     question.style.backgroundColor = '#007BFF';
@@ -172,28 +230,28 @@ question.addEventListener('click', () => {
     question.style.backgroundColor = 'gold';
     star.style.backgroundColor = '#007BFF';
   }
-});
+};
 
-document.querySelector('#addUrl').addEventListener('click', function() {
+document.querySelector('#addUrl').onclick = () => {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     let comment = document.getElementById('comment').value;
     saveUrlToList(comment);
     // Clear the comment field
-    document.getElementById('comment').value = '';
+    document.querySelector('#comment').value = '';
   });
-});
+};
 
 // Event listener for the delete button
-document.getElementById('deleteList').addEventListener('click', deleteSelectedList);
+document.getElementById('deleteList').onclick = deleteSelectedList;
 
 // Populate the dropdown when the popup is loaded 
 document.addEventListener('DOMContentLoaded', populateExistingLists);
 
 // Listener for the exportToExcel button
-document.getElementById('exportToExcel').addEventListener('click', function() {
+document.getElementById('exportToExcel').onclick = () => {
   let selectedList = document.getElementById('existingLists').value;
   exportToExcel(selectedList);
-});
+};
 
 // Function to export lists into Excel
 function exportToExcel(listName) {
@@ -206,7 +264,7 @@ function exportToExcel(listName) {
 
           // Prepare data in a format suitable for XLSX
           let xlsxData = [];
-          xlsxData.push(["URL", "Comment", "Date", "Time", "Artist Name", "Artist Location", "Summary", "Skills", "Software"]);
+          xlsxData.push(["URL", "Comment", "Date", "Time", "Artist Name", "Artist Location", "Summary", "Skills", "Software", "Status", "Vacancy"]);
           
           list.forEach(function(item) {
               let artistName = item.artistInfo ? item.artistInfo.name : '';
@@ -214,7 +272,7 @@ function exportToExcel(listName) {
               let summary = item.artistInfo ? item.artistInfo.summary : '';
               let skills = item.artistInfo && item.artistInfo.skills ? item.artistInfo.skills.join(', ') : '';
               let software = item.artistInfo && item.artistInfo.software ? item.artistInfo.software.join(', ') : '';
-              xlsxData.push([item.url, item.comment, item.date, item.time, artistName, artistLocation, summary, skills, software]);
+              xlsxData.push([item.url, item.comment, item.date, item.time, artistName, artistLocation, summary, skills, software, item.status, listName]);
           });
 
           // Create a new worksheet from the data
@@ -241,24 +299,13 @@ function displaySavedProfiles(listName) {
   let profileListDiv = document.querySelector('#profileList');
   // The most beatyful profile list is table IMHO
   let table = document.createElement('table');
-  let colgroup = document.createElement('colgroup');
-  let col = document.createElement('col');
-  col.style = 'width: 30%';
-  colgroup.appendChild(col);
-  col.style = 'width: 20%';
-  colgroup.appendChild(col);
-  col.style = 'width: 20%';
-  colgroup.appendChild(col);
-  col.style = 'width: 20%';
-  colgroup.appendChild(col);
-  table.appendChild(colgroup);
 
   // Filter options
   let thead = document.createElement('thead');
   let filterRow = document.createElement('tr');
   //filterRow.className = 'filterDiv';
   let filterCell = document.createElement('th');
-  filterCell.textContent = 'Filter';
+  filterCell.textContent = 'Filters:';
   
   let allBtnCell = document.createElement('th');
   let allBtn = document.createElement('button');

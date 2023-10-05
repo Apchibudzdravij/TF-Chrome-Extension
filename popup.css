@@ -162,26 +162,11 @@ td:nth-child(2), td:nth-child(3), td:nth-child(4) {
 .profileLinkBtn:hover {
   background-color: #0056b3;
 }
-/*
-.profileItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
+
+div a {
+  white-space: nowrap;
 }
-.profileItem span {
-  display: block;
-  margin-bottom: 5px;
-}
-.profileItem .profileActions {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
-.profileItem .profileActions button:not(:last-child) {
-  margin-right: 5px;
-}
-*/
+
 .profileNameLink {
   color: inherit;
   text-decoration: none;
@@ -198,10 +183,11 @@ td:nth-child(2), td:nth-child(3), td:nth-child(4) {
 
 
 .statusBtn {
-  margin: 0 5px;
-  padding: 5px 10px;
+  margin: 2px;
+  padding: 1px 1px; /* Minimal padding */
+  font-size: 0.9em; /* Slightly smaller font size */
   cursor: pointer;
-  background-color: #e0e0e0;
+  background-color: #007BFF;
   transition: background-color 0.3s;
   color: #007BFF; /* Blue text for non-active filter buttons */
 }
@@ -209,16 +195,12 @@ td:nth-child(2), td:nth-child(3), td:nth-child(4) {
   background-color: #c0c0c0;
 }
 .statusBtn.active {
-  background-color: #007BFF;
+  background-color: gold;
   color: white;
 }
-.statusBtn.reviewLater {
-  padding: 5px 5px; /* Minimal padding */
-  font-size: 0.9em; /* Slightly smaller font size */
-}
 .statusBtn img {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   vertical-align: middle;
 }
 
@@ -294,6 +276,7 @@ a[title]:hover:after {
 }
 
 .tooltip {
+  width: 100%;
   position: relative;
   display: inline-block;
   cursor: pointer;

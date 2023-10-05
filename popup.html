@@ -11,12 +11,9 @@
       New list
     </option>
     <optgroup label="Saved lists" id="existingListGroup">
-      <option value="DC">
-        DC
-      </option>
     </optgroup>
   </select>
-  <input type="text" id="comment" style="display: none" placeholder="Comment (optional)" title="Add a comment about the URL">
+  <input type="text" id="comment" style="display: none" placeholder="Comment (optional)" title="Add a comment about the URL" maxlength="96">
 
   <div class="button-row" style="display: none">
     <button class="importance" id="addStar"><image src="./images/star.svg" /></button>
@@ -24,7 +21,7 @@
     <button id="addUrl" title="Add the current tab's profile info to the selected list">Add profile</button>
   </div>
 
-  <input type="text" id="newListName" placeholder="New List Name (required)" title="Enter a name for a new list or select an existing one">
+  <input type="text" id="newListName" placeholder="New List Name (required)" title="Enter a name for a new list or select an existing one" maxlength="32">
   <div class="button-row">
     <button id="addList" title="Create a new list">Add list</button>
   </div>
