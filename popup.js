@@ -49,6 +49,7 @@ function saveUrlToList(comment) {
 
             // Remove the listener after it's executed to avoid multiple calls
             chrome.tabs.onUpdated.removeListener(listener);
+            selectNew();
           });
         }
       });
@@ -141,7 +142,7 @@ function showFeedback(message) {
   }, 3000);
 }
 
-function populateExistingLists(callback) {
+function populateExistingLists() {
   // Get all keys (list names) from storage
   chrome.storage.sync.get(null, items => {
     let existingListsDropdown = document.querySelector('#existingListGroup');
@@ -169,18 +170,15 @@ function deleteSelectedList() {
   let selectedList = document.querySelector('#existingLists').value;
   if (selectedList) {
       // Add a confirmation dialog
-      if (confirm('Are you sure you want to delete the entire list? This action cannot be undone.')) {
-          chrome.storage.sync.remove(selectedList, () => {
-              console.log('List deleted:', selectedList);
-              // Refresh the dropdown to reflect the changes
-              populateExistingLists(() => {
-                alert('List deleted successfully!');
-                document.querySelector('#existingLists').change();
-                document.querySelector('#existingLists').click();
-              });
-          });
-      }
+    if (confirm('Are you sure you want to delete the entire list? This action cannot be undone.')) {
+      chrome.storage.sync.remove(selectedList, () => {
+        console.log('List deleted:', selectedList);
+        // Refresh the dropdown to reflect the changes
+        populateExistingLists();
+      });
+    }
   }
+  selectNew();
 }
 function createSelectedList() {
   let newList = document.querySelector('#newListName').value;
@@ -199,6 +197,7 @@ function createSelectedList() {
         console.log('List created:', newList);
         populateExistingLists();
         showFeedback('List created successfully!');
+        document.querySelector('#newListName').value = '';
       });
     } else {
       alert('A list with that name already exists!');
@@ -208,7 +207,6 @@ function createSelectedList() {
 
 document.querySelector('#addList').addEventListener('click', createSelectedList);
 document.querySelector('#existingLists').addEventListener('change', checkIfNewList);
-document.querySelector('#existingLists').onclick = checkIfNewList;
 
 let star = document.querySelector("#addStar");
 let question = document.querySelector("#addQuestion");
@@ -462,10 +460,17 @@ function updateProfileStatus(url, status) {
         let list = data[listName];
         let profile = list.find(p => p.url === url);
         if (profile) {
+          if (profile.status == status) {
+            profile.status = 'Unmarked';
+            chrome.storage.sync.set({ [listName]: list }, function() {
+                displaySavedProfiles(listName); // Refresh the list
+            });
+          } else {
             profile.status = status;
             chrome.storage.sync.set({ [listName]: list }, function() {
                 displaySavedProfiles(listName); // Refresh the list
             });
+          }
         }
     });
 }
@@ -486,16 +491,24 @@ function filterProfiles(status) {
 
 function checkIfNewList() {
   if (this.value == 'New list'){
-    document.getElementById('newListName').style.display = 'inline-block';
-    document.querySelector('#notNewList').style.display = 'none';
-    document.querySelector('#comment').style.display = 'none';
-    document.querySelectorAll('.button-row')[0].style.display = 'none';
-    document.querySelectorAll('.button-row')[1].style.display = 'flex';
+    selectNew();
   } else {
-    document.getElementById('newListName').style.display = 'none';
-    document.querySelector('#notNewList').style.display = 'block';
-    document.querySelector('#comment').style.display = 'inline-block';
-    document.querySelectorAll('.button-row')[0].style.display = 'flex';
-    document.querySelectorAll('.button-row')[1].style.display = 'none';
+    selectExisting();
   }
+}
+
+function selectNew() {
+  document.querySelector('#newListName').style.display = 'inline-block';
+  document.querySelector('#notNewList').style.display = 'none';
+  document.querySelector('#comment').style.display = 'none';
+  document.querySelectorAll('.button-row')[0].style.display = 'none';
+  document.querySelectorAll('.button-row')[1].style.display = 'flex';
+}
+
+function selectExisting() {
+  document.querySelector('#newListName').style.display = 'none';
+  document.querySelector('#notNewList').style.display = 'block';
+  document.querySelector('#comment').style.display = 'inline-block';
+  document.querySelectorAll('.button-row')[0].style.display = 'flex';
+  document.querySelectorAll('.button-row')[1].style.display = 'none';
 }
