@@ -183,44 +183,6 @@ document.querySelector('#addUrl').addEventListener('click', function() {
   });
 });
 
-/*document.getElementById('importButton').addEventListener('click', function() {
-  document.getElementById('importFile').click();
-});
-
-document.getElementById('importFile').addEventListener('change', function(event) {
-  let file = event.target.files[0];
-  let reader = new FileReader();
-  
-  reader.onload = function(e) {
-    let importedData = JSON.parse(e.target.result);
-    
-    // Clear the storage first
-    chrome.storage.sync.clear(function() {
-      // Set the new values
-      chrome.storage.sync.set(importedData, function() {
-        showFeedback('URLs imported successfully!');
-      });
-    });
-  };
-  
-  reader.readAsText(file);
-});
-
-document.getElementById('exportButton').addEventListener('click', function() {
-  chrome.storage.sync.get(null, function(data) {
-    let exportedData = JSON.stringify(data, null, 2);
-    let blob = new Blob([exportedData], {type: 'application/json'});
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = 'exportedLists.json';
-    a.click();
-
-    URL.revokeObjectURL(url);
-  });
-});*/
-
 // Event listener for the delete button
 document.getElementById('deleteList').addEventListener('click', deleteSelectedList);
 
@@ -270,87 +232,123 @@ function exportToExcel(listName) {
 }
 
 // Listener to display saved profiles
-document.getElementById('existingLists').addEventListener('change', function() {
+document.querySelector('#existingLists').addEventListener('change', function() {
   let selectedList = this.value;
   displaySavedProfiles(selectedList);
 });
 
-// Display saved profiles
 function displaySavedProfiles(listName) {
+  let profileListDiv = document.querySelector('#profileList');
+  // The most beatyful profile list is table IMHO
+  let table = document.createElement('table');
+  let colgroup = document.createElement('colgroup');
+  let col = document.createElement('col');
+  col.style = 'width: 30%';
+  colgroup.appendChild(col);
+  col.style = 'width: 20%';
+  colgroup.appendChild(col);
+  col.style = 'width: 20%';
+  colgroup.appendChild(col);
+  col.style = 'width: 20%';
+  colgroup.appendChild(col);
+  table.appendChild(colgroup);
+
+  // Filter options
+  let thead = document.createElement('thead');
+  let filterRow = document.createElement('tr');
+  //filterRow.className = 'filterDiv';
+  let filterCell = document.createElement('th');
+  filterCell.textContent = 'Filter';
+  
+  let allBtnCell = document.createElement('th');
+  let allBtn = document.createElement('button');
+  allBtn.textContent = 'All';
+  allBtn.addEventListener('click', function() {
+      filterProfiles('All');
+  });
+  allBtnCell.appendChild(allBtn);
+
+  // For the "Yes" filter button
+  let yesBtnCell = document.createElement('th');
+  let yesBtn = document.createElement('button');
+  yesBtn.className = "filterButton";  // Add a class to the button
+  let yesIcon = document.createElement('img');
+  yesIcon.src = 'images/star.svg';  // Path to your star image for "Yes"
+  yesIcon.alt = 'Yes';
+  yesBtn.appendChild(yesIcon);
+  yesBtn.addEventListener('click', function() {
+      filterProfiles('Yes');
+  });
+  yesBtnCell.appendChild(yesBtn);
+
+  // For the "Review Later" filter button
+  let reviewLaterBtnCell = document.createElement('th');
+  let reviewLaterBtn = document.createElement('button');
+  reviewLaterBtn.className = "filterButton";  // Add a class to the button
+  let reviewLaterIcon = document.createElement('img');
+  reviewLaterIcon.src = 'images/IconQuestionMark.svg';  // Path to your question mark image for "Review Later"
+  reviewLaterIcon.alt = 'Review Later';
+  reviewLaterBtn.appendChild(reviewLaterIcon);
+  reviewLaterBtn.addEventListener('click', function() {
+      filterProfiles('To review later');
+  });
+  reviewLaterBtnCell.appendChild(reviewLaterBtn);
+
+  filterRow.appendChild(filterCell);
+  filterRow.appendChild(yesBtnCell);
+  filterRow.appendChild(reviewLaterBtnCell);
+  filterRow.appendChild(allBtnCell);
+  thead.appendChild(filterRow);
+  table.appendChild(thead);
+
   chrome.storage.sync.get(listName, function(data) {
     let list = data[listName];
-    let profileListDiv = document.getElementById('profileList');
     profileListDiv.innerHTML = ''; // Clear previous profiles
 
     // Update the profile count
-    let profileCountElement = document.getElementById('profileCount');
+    let profileCountElement = document.querySelector('#profileCount');
     profileCountElement.textContent = list ? list.length : 0;
 
-    // Filter options
-    let filterDiv = document.createElement('div');
-    filterDiv.className = 'filterDiv';
-
-    let allBtn = document.createElement('button');
-    allBtn.textContent = 'All';
-    allBtn.addEventListener('click', function() {
-        filterProfiles('All');
-    });
-
-    // For the "Yes" filter button
-    let yesBtnFilter = document.createElement('button');
-    yesBtnFilter.className = "filterButton";  // Add a class to the button
-    let yesIconFilter = document.createElement('img');
-    yesIconFilter.src = 'images/IconStar.svg';  // Path to your star image for "Yes"
-    yesIconFilter.alt = 'Yes';
-    yesBtnFilter.appendChild(yesIconFilter);
-    yesBtnFilter.addEventListener('click', function() {
-        filterProfiles('Yes');
-    });
-
-    // For the "Review Later" filter button
-    let reviewLaterBtnFilter = document.createElement('button');
-    reviewLaterBtnFilter.className = "filterButton";  // Add a class to the button
-    let reviewIconFilter = document.createElement('img');
-    reviewIconFilter.src = 'images/IconQuestionMark.svg';  // Path to your question mark image for "Review Later"
-    reviewIconFilter.alt = 'Review Later';
-    reviewLaterBtnFilter.appendChild(reviewIconFilter);
-    reviewLaterBtnFilter.addEventListener('click', function() {
-        filterProfiles('To review later');
-    });
-
-    filterDiv.appendChild(allBtn);
-    filterDiv.appendChild(yesBtnFilter);
-    filterDiv.appendChild(reviewLaterBtnFilter);
-    profileListDiv.appendChild(filterDiv);
-
-    // Add a line to separate filters and profiles
-    let hrElement = document.createElement('hr');
-    profileListDiv.appendChild(hrElement);
-
     if (list && list.length) {
-      list.forEach(function(item) {
-        let profileDiv = document.createElement('div');
-        profileDiv.className = 'profileItem';
+      let tbody = document.createElement('tbody');
+      list.forEach(item => {//lambda expression is a little bit easier to read
+        let profileRow = document.createElement('tr');
+        profileRow.className = 'profileItem';
 
         // Make the profile name a clickable link
+        let profileNameLinkCell = document.createElement('td');
+        let tooltipDiv = document.createElement('div');
         let profileNameLink = document.createElement('a');
         profileNameLink.href = item.url;
         profileNameLink.target = '_blank'; // Open in a new tab
         profileNameLink.textContent = item.artistInfo ? item.artistInfo.name : 'Unknown Artist';
         profileNameLink.className = 'profileNameLink';
+        tooltipDiv.className = 'tooltip';
         profileNameLink.setAttribute('data-status', item.status || 'Unknown');
+        tooltipDiv.appendChild(profileNameLink);
+        // Tooltip for the profile name link
+        if (item.comment != '') {
+          let tooltip = document.createElement('span');
+          tooltip.textContent = item.comment;
+          tooltip.className = 'tooltiptext';
+          tooltipDiv.appendChild(tooltip);
+        }
+        profileNameLinkCell.appendChild(tooltipDiv);
 
         // Status buttons
+        let yesBtnCell = document.createElement('td');
         let yesBtn = document.createElement('button');
         yesBtn.className = (item.status === "Yes") ? 'statusBtn active' : 'statusBtn';
         let yesIcon = document.createElement('img');
-        yesIcon.src = 'images/IconStar.svg';  // Path to your star image
+        yesIcon.src = 'images/star.svg';  // Path to your star image
         yesIcon.alt = 'Yes';
         yesBtn.appendChild(yesIcon);
         yesBtn.addEventListener('click', function() {
             updateProfileStatus(item.url, "Yes");
         });
+        yesBtnCell.appendChild(yesBtn);
 
+        let reviewLaterBtnCell = document.createElement('td');
         let reviewLaterBtn = document.createElement('button');
         reviewLaterBtn.className = (item.status === "To review later") ? 'statusBtn reviewLater active' : 'statusBtn reviewLater';
         let reviewIcon = document.createElement('img');
@@ -360,7 +358,9 @@ function displaySavedProfiles(listName) {
         reviewLaterBtn.addEventListener('click', function() {
             updateProfileStatus(item.url, "To review later");
         });
+        reviewLaterBtnCell.appendChild(reviewLaterBtn);
 
+        let deleteBtnCell = document.createElement('td');
         let deleteBtn = document.createElement('button');
         deleteBtn.className = 'statusBtn';
         let deleteIcon = document.createElement('img');
@@ -378,23 +378,22 @@ function displaySavedProfiles(listName) {
                 }
             }
         });
+        deleteBtnCell.appendChild(deleteBtn);
 
-        let buttonContainer = document.createElement('div');
-        buttonContainer.className = 'buttonContainer';
-
-        buttonContainer.appendChild(yesBtn);  // Add the "Yes" button
-        buttonContainer.appendChild(reviewLaterBtn);  // Add the "Review Later" button
-        buttonContainer.appendChild(deleteBtn);
-
-        profileDiv.appendChild(profileNameLink);
-        profileDiv.appendChild(buttonContainer);  // Add the button container to the profile div
-
-        profileListDiv.appendChild(profileDiv);
+        profileRow.appendChild(profileNameLinkCell);
+        profileRow.appendChild(yesBtnCell);
+        profileRow.appendChild(reviewLaterBtnCell);
+        profileRow.appendChild(deleteBtnCell);
+        tbody.appendChild(profileRow);
+        table.appendChild(tbody);
       });
+      profileListDiv.appendChild(table);
     } else {
-        profileListDiv.innerHTML = '<p>No profiles saved.</p>';
+      //profileListDiv.appendChild(table);
+      profileListDiv.innerHTML = '<p>No profiles saved.</p>';
     }
   });
+  //profileListDiv.appendChild(table);
 }
 
 // Search functionality
@@ -409,16 +408,6 @@ document.querySelector('#searchProfile').addEventListener('input', function() {
       }
   });
 });
-
-/*// Listener to get advanced options in HTML file
-document.getElementById('advancedOptionsToggle').addEventListener('click', function() {
-  let advancedOptions = document.getElementById('advancedOptions');
-  if (advancedOptions.style.display === "none") {
-      advancedOptions.style.display = "block";
-  } else {
-      advancedOptions.style.display = "none";
-  }
-});*/
 
 function updateProfileStatus(url, status) {
     let listName = document.querySelector('#existingLists').value;
@@ -439,11 +428,11 @@ function filterProfiles(status) {
   allProfiles.forEach(profile => {
       let nameLink = profile.querySelector('.profileNameLink');
       if (status === 'All' || (nameLink && nameLink.getAttribute('data-status') === status)) {
-          profile.style.visibility = 'visible';
-          profile.style.height = 'auto';
+          profile.style.display = 'table-row';
+          //profile.style.height = 'auto';
       } else {
-          profile.style.visibility = 'hidden';
-          profile.style.height = '0';
+          profile.style.display = 'none';
+          //profile.style.height = '0';
       }
   });
 }
