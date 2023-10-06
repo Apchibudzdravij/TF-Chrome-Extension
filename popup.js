@@ -30,25 +30,31 @@ function saveUrlToList(comment) {
       // Wait for the tab to be fully loaded before sending the message
       chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
         if (info.status === 'complete' && tabId === updatedTab.id) {
+          let count = 0;
           chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
-            let artistInfo = null;
-            if (response) {
-              artistInfo = {
-                name: response.name,
-                location: response.location,
-                summary: response.summary,
-                skills: response.skills,
-                software: response.software
-              };
+            if (count === 0){
+              ++count;
+              let artistInfo = null;
+              if (response) {
+                artistInfo = {
+                  name: response.name,
+                  location: response.location,
+                  summary: response.summary,
+                  skills: response.skills,
+                  software: response.software,
+                  contacts: response.contacts
+                };
+              }
+              // Save the URL with artist info, date, time, and comment
+              saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
+
+              // Navigate back to the original URL
+              chrome.tabs.update(currentTab.id, {url: originalUrl});
+
+              // Remove the listener after it's executed to avoid multiple calls
+              chrome.tabs.onUpdated.removeListener(listener);
+              document.querySelector('#addUrl').disabled = false;
             }
-            // Save the URL with artist info, date, time, and comment
-            saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
-
-            // Navigate back to the original URL
-            chrome.tabs.update(currentTab.id, {url: originalUrl});
-
-            // Remove the listener after it's executed to avoid multiple calls
-            chrome.tabs.onUpdated.removeListener(listener);
           });
         }
       });
@@ -71,6 +77,7 @@ function saveToStorage(url, comment, artistInfo, date) {
             : 'Unmarked';
           document.querySelector('#addStar').style.backgroundColor = '#007BFF';
           document.querySelector('#addQuestion').style.backgroundColor = '#007BFF';
+          
           list[item].comment = comment;
           list[item].date = date;
           list[item].artistInfo = artistInfo;
@@ -96,7 +103,7 @@ function saveToStorage(url, comment, artistInfo, date) {
       : 'Unmarked';
     document.querySelector('#addStar').style.backgroundColor = '#007BFF';
     document.querySelector('#addQuestion').style.backgroundColor = '#007BFF';
-  
+    
     chrome.storage.sync.get(listName, function(data) {
       let list = data[listName] || [];
       list.push({
@@ -175,12 +182,13 @@ function deleteSelectedList() {
         // Refresh the dropdown to reflect the changes
         populateExistingLists();
       });
+      selectNew();
     }
   }
-  selectNew();
 }
 function createSelectedList() {
   let newList = document.querySelector('#newListName').value;
+  if (newList) {
   chrome.storage.sync.get(null, items => {
     let isNotExisting = true;
     for (let listName in items) {
@@ -202,6 +210,9 @@ function createSelectedList() {
       alert('A list with that name already exists!');
     }
   });
+  } else {
+    alert('Please enter a list name!');
+  }
 }
 
 document.querySelector('#addList').addEventListener('click', createSelectedList);
@@ -229,7 +240,9 @@ question.onclick = () => {
   }
 };
 
-document.querySelector('#addUrl').onclick = () => {
+document.querySelector('#addUrl').onclick = addUrlEvent;
+
+function addUrlEvent() {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     let comment = document.getElementById('comment').value;
     saveUrlToList(comment);
@@ -261,7 +274,7 @@ function exportToExcel(listName) {
 
           // Prepare data in a format suitable for XLSX
           let xlsxData = [];
-          xlsxData.push(["URL", "Comment", "Date", "Artist Name", "Artist Location", "Summary", "Skills", "Software", "Status", "Vacancy"]);
+          xlsxData.push(["URL", "Comment", "Date", "Artist Name", "Artist Location", "Summary", "Skills", "Software", "Status", "Vacancy", "LinkedIn", "Twitter", "Facebook", "Instagram", "Contacts"]);
           
           list.forEach(function(item) {
               let artistName = item.artistInfo ? item.artistInfo.name : '';
@@ -269,7 +282,12 @@ function exportToExcel(listName) {
               let summary = item.artistInfo ? item.artistInfo.summary : '';
               let skills = item.artistInfo && item.artistInfo.skills ? item.artistInfo.skills.join(', ') : '';
               let software = item.artistInfo && item.artistInfo.software ? item.artistInfo.software.join(', ') : '';
-              xlsxData.push([item.url, item.comment, item.date, artistName, artistLocation, summary, skills, software, item.status, listName]);
+              let linkedin = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.linkedin ? item.artistInfo.contacts.linkedin : '';
+              let twitter = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.twitter? item.artistInfo.contacts.twitter : '';
+              let facebook = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.facebook? item.artistInfo.contacts.facebook : '';
+              let instagram = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.instagram? item.artistInfo.contacts.instagram : '';
+              let contacts = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.contacts? item.artistInfo.contacts.contacts.join(', ') : '';
+              xlsxData.push([item.url, item.comment, item.date, artistName, artistLocation, summary, skills, software, item.status, listName, linkedin, twitter, facebook, instagram, contacts]);
           });
 
           // Create a new worksheet from the data

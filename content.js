@@ -28,12 +28,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   function extractAndSendInfo() {
     let artistInfo = getArtistInfo();
     let aboutInfo = getAboutInfo();
+    let contacts = getContactInfo();
     sendResponse({
         name: artistInfo.name,
         location: artistInfo.location,
         summary: aboutInfo.summary,
         skills: aboutInfo.skills,
-        software: aboutInfo.software
+        software: aboutInfo.software,
+        contacts: contacts
     });
   }
 
@@ -45,12 +47,7 @@ function getArtistInfo() {
   let artistNameElement = document.querySelector(".user-info > h1");
   let artistName = artistNameElement ? artistNameElement.innerText.trim() : null;
 
-    /*// Check if artistName exists and if it ends with "PRO", then remove it
-    if (artistName && artistName.endsWith("PRO")) {
-      artistName = artistName.slice(0, -3); // Remove the last 3 characters ("PRO")
-    }*/
-
-    // Extract the location
+  // Extract the location
   let locationElement = document.querySelector('.addition-info-list > li > span');
   let artistLocation = locationElement ? locationElement.innerText.trim() : null;
 
@@ -67,10 +64,32 @@ function getAboutInfo() {
   // Extract skills
   let skillsElements = document.querySelectorAll(".skills > div > badge-list > ul > li > .profile-badge");
   aboutInfo.skills = Array.from(skillsElements).map(el => el.innerText.trim());
-
+  
   // Extract software
   let softwareElements = document.querySelectorAll(".software > div > badge-list > ul > li > .profile-badge");
   aboutInfo.software = Array.from(softwareElements).map(el => el.innerText.trim());
 
   return aboutInfo;
+}
+
+function getContactInfo() {
+  let contactInfo = {};
+  contactInfo.contacts = [];
+  let contactElements = document.querySelectorAll(`.sidebar-block > social-links > ul > li > a`);
+  let tempContacts = Array.from(contactElements).map(el => el.href.trim());
+
+  for (el in tempContacts) {
+    if (tempContacts[el].indexOf('twitter') !== -1) {
+      contactInfo.twitter = tempContacts[el];
+    } else if (tempContacts[el].indexOf('linkedin') !== -1) {
+      contactInfo.linkedin = tempContacts[el];
+    } else if (tempContacts[el].indexOf('instagram') !== -1) {
+      contactInfo.instagram = tempContacts[el];
+    } else if (tempContacts[el].indexOf('facebook') !== -1) {
+      contactInfo.facebook = tempContacts[el];
+    } else {
+      contactInfo.contacts.push(tempContacts[el]);
+    }
+  }
+  return contactInfo;
 }
