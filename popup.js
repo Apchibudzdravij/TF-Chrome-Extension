@@ -6,7 +6,7 @@ function saveUrlToList(comment) {
   let cetDate = new Date(currentDate.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
   let formattedDate = cetDate.toLocaleDateString();
   let formattedTime = cetDate.toLocaleTimeString() + " CET";
-
+  
   // Send a message to the content script to get the artist and about info
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     let currentTab = tabs[0];
@@ -49,7 +49,6 @@ function saveUrlToList(comment) {
 
             // Remove the listener after it's executed to avoid multiple calls
             chrome.tabs.onUpdated.removeListener(listener);
-            selectNew();
           });
         }
       });
@@ -58,7 +57,7 @@ function saveUrlToList(comment) {
 }
 
 // Helper function to save the URL and associated data to Chrome storage
-function saveToStorage(url, comment, artistInfo, date, time) {
+function saveToStorage(url, comment, artistInfo, date) {
   let listName = document.getElementById('existingLists').value;
   chrome.storage.sync.get(listName, function(data) {
     let list = data[listName];
@@ -74,7 +73,6 @@ function saveToStorage(url, comment, artistInfo, date, time) {
           document.querySelector('#addQuestion').style.backgroundColor = '#007BFF';
           list[item].comment = comment;
           list[item].date = date;
-          list[item].time = time;
           list[item].artistInfo = artistInfo;
           list[item].status = tempStatus;
           let saveObj = {};
@@ -85,6 +83,7 @@ function saveToStorage(url, comment, artistInfo, date, time) {
             populateExistingLists();
             document.getElementById('addUrl').disabled = false;
           });
+          selectNew();
           return;
         }
         return;
@@ -104,7 +103,6 @@ function saveToStorage(url, comment, artistInfo, date, time) {
         url: url,
         comment: comment,
         date: date,
-        time: time,
         artistInfo: artistInfo,
         status: tempStatus
       });
@@ -120,6 +118,7 @@ function saveToStorage(url, comment, artistInfo, date, time) {
         document.getElementById('addUrl').disabled = false;
       });
     });
+    selectNew();
   });
 }
 
@@ -262,7 +261,7 @@ function exportToExcel(listName) {
 
           // Prepare data in a format suitable for XLSX
           let xlsxData = [];
-          xlsxData.push(["URL", "Comment", "Date", "Time", "Artist Name", "Artist Location", "Summary", "Skills", "Software", "Status", "Vacancy"]);
+          xlsxData.push(["URL", "Comment", "Date", "Artist Name", "Artist Location", "Summary", "Skills", "Software", "Status", "Vacancy"]);
           
           list.forEach(function(item) {
               let artistName = item.artistInfo ? item.artistInfo.name : '';
@@ -270,7 +269,7 @@ function exportToExcel(listName) {
               let summary = item.artistInfo ? item.artistInfo.summary : '';
               let skills = item.artistInfo && item.artistInfo.skills ? item.artistInfo.skills.join(', ') : '';
               let software = item.artistInfo && item.artistInfo.software ? item.artistInfo.software.join(', ') : '';
-              xlsxData.push([item.url, item.comment, item.date, item.time, artistName, artistLocation, summary, skills, software, item.status, listName]);
+              xlsxData.push([item.url, item.comment, item.date, artistName, artistLocation, summary, skills, software, item.status, listName]);
           });
 
           // Create a new worksheet from the data

@@ -2,7 +2,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === "getArtistAndAboutInfo") {
 
     // Check if the desired elements are already in the DOM
-    if (document.querySelector(".artist-name") && document.querySelector(".school-tag-item")) {
+    if (document.querySelector(".user-info > h1") && document.querySelector(".skills > div > badge-list > ul > li > .profile-badge")) {
       extractAndSendInfo();
       return;
     }
@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
           // Check if the desired elements are now in the DOM
-          if (document.querySelector(".artist-name") && document.querySelector(".school-tag-item")) {
+          if (document.querySelector(".user-info > h1") && document.querySelector(".skills > div > badge-list > ul > li > .profile-badge")) {
             extractAndSendInfo();
             observer.disconnect();  // Stop observing once we've found the elements
             return;
@@ -42,34 +42,34 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 
 function getArtistInfo() {
-    let artistNameElement = document.querySelector(".artist-name");
-    let artistName = artistNameElement ? artistNameElement.innerText.trim() : null;
+  let artistNameElement = document.querySelector(".user-info > h1");
+  let artistName = artistNameElement ? artistNameElement.innerText.trim() : null;
 
-    // Check if artistName exists and if it ends with "PRO", then remove it
+    /*// Check if artistName exists and if it ends with "PRO", then remove it
     if (artistName && artistName.endsWith("PRO")) {
       artistName = artistName.slice(0, -3); // Remove the last 3 characters ("PRO")
-    }
+    }*/
 
     // Extract the location
-    let locationElement = document.querySelector('.artist-additional-info > span');
-    let artistLocation = locationElement ? locationElement.innerText.trim() : null;
+  let locationElement = document.querySelector('.addition-info-list > li > span');
+  let artistLocation = locationElement ? locationElement.innerText.trim() : null;
 
-    return { name: artistName, location: artistLocation };
+  return { name: artistName, location: artistLocation };
 }
 
 function getAboutInfo() {
   let aboutInfo = {};
 
   // Extract the summary
-  let summaryElement = document.querySelector(".profile-section-summary .summary-content");
+  let summaryElement = document.querySelector(".resume-section-content .user-resume-summary-content");
   aboutInfo.summary = summaryElement ? summaryElement.innerText.trim() : null;
 
   // Extract skills
-  let skillsElements = document.querySelectorAll(".school-tag-item");
+  let skillsElements = document.querySelectorAll(".skills > div > badge-list > ul > li > .profile-badge");
   aboutInfo.skills = Array.from(skillsElements).map(el => el.innerText.trim());
 
   // Extract software
-  let softwareElements = document.querySelectorAll(".software-name");
+  let softwareElements = document.querySelectorAll(".software > div > badge-list > ul > li > .profile-badge");
   aboutInfo.software = Array.from(softwareElements).map(el => el.innerText.trim());
 
   return aboutInfo;
