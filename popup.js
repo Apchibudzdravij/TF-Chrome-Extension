@@ -24,13 +24,12 @@ function saveUrlToList(comment) {
     if (!profileUrl.endsWith('/profile')) {
       profileUrl += '/profile';
     }
-
+    let count = 0;
     // Navigate to the profile page
     chrome.tabs.update(currentTab.id, {url: profileUrl}, function(updatedTab) {
       // Wait for the tab to be fully loaded before sending the message
       chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
         if (info.status === 'complete' && tabId === updatedTab.id) {
-          let count = 0;
           chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
             if (count === 0){
               ++count;
@@ -266,41 +265,41 @@ document.getElementById('exportToExcel').onclick = () => {
 // Function to export lists into Excel
 function exportToExcel(listName) {
   chrome.storage.sync.get(listName, function(data) {
-      let list = data[listName];
-      if (list && list.length) {
-          // Create a new workbook and a new worksheet
-          var wb = XLSX.utils.book_new();
-          var ws_name = "SheetJS";
+    let list = data[listName];
+    if (list && list.length) {
+      // Create a new workbook and a new worksheet
+      var wb = XLSX.utils.book_new();
+      var ws_name = "SheetJS";
 
-          // Prepare data in a format suitable for XLSX
-          let xlsxData = [];
-          xlsxData.push(["URL", "Comment", "Date", "Artist Name", "Artist Location", "Summary", "Skills", "Software", "Status", "Vacancy", "LinkedIn", "Twitter", "Facebook", "Instagram", "Contacts"]);
+      // Prepare data in a format suitable for XLSX
+      let xlsxData = [];
+      xlsxData.push(["URL", "Comment", "Date", "Artist Name", "Artist Location", "Summary", "Skills", "Software", "Status", "Vacancy", "LinkedIn", "Twitter", "Facebook", "Instagram", "Contacts"]);
           
-          list.forEach(function(item) {
-              let artistName = item.artistInfo ? item.artistInfo.name : '';
-              let artistLocation = item.artistInfo ? item.artistInfo.location : '';
-              let summary = item.artistInfo ? item.artistInfo.summary : '';
-              let skills = item.artistInfo && item.artistInfo.skills ? item.artistInfo.skills.join(', ') : '';
-              let software = item.artistInfo && item.artistInfo.software ? item.artistInfo.software.join(', ') : '';
-              let linkedin = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.linkedin ? item.artistInfo.contacts.linkedin : '';
-              let twitter = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.twitter? item.artistInfo.contacts.twitter : '';
-              let facebook = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.facebook? item.artistInfo.contacts.facebook : '';
-              let instagram = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.instagram? item.artistInfo.contacts.instagram : '';
-              let contacts = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.contacts? item.artistInfo.contacts.contacts.join(', ') : '';
-              xlsxData.push([item.url, item.comment, item.date, artistName, artistLocation, summary, skills, software, item.status, listName, linkedin, twitter, facebook, instagram, contacts]);
-          });
+      list.forEach(function(item) {
+        let artistName = item.artistInfo ? item.artistInfo.name : '';
+        let artistLocation = item.artistInfo ? item.artistInfo.location : '';
+        let summary = item.artistInfo ? item.artistInfo.summary : '';
+        let skills = item.artistInfo && item.artistInfo.skills ? item.artistInfo.skills.join(', ') : '';
+        let software = item.artistInfo && item.artistInfo.software ? item.artistInfo.software.join(', ') : '';
+        let linkedin = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.linkedin ? item.artistInfo.contacts.linkedin : '';
+        let twitter = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.twitter? item.artistInfo.contacts.twitter : '';
+        let facebook = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.facebook? item.artistInfo.contacts.facebook : '';
+        let instagram = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.instagram? item.artistInfo.contacts.instagram : '';
+        let contacts = item.artistInfo && item.artistInfo.contacts && item.artistInfo.contacts.contacts? item.artistInfo.contacts.contacts.join(', ') : '';
+        xlsxData.push([item.url, item.comment, item.date, artistName, artistLocation, summary, skills, software, item.status, listName, linkedin, twitter, facebook, instagram, contacts]);
+      });
 
-          // Create a new worksheet from the data
-          var ws = XLSX.utils.aoa_to_sheet(xlsxData);
+      // Create a new worksheet from the data
+      var ws = XLSX.utils.aoa_to_sheet(xlsxData);
 
-          // Append the worksheet to the workbook
-          XLSX.utils.book_append_sheet(wb, ws, ws_name);
+      // Append the worksheet to the workbook
+      XLSX.utils.book_append_sheet(wb, ws, ws_name);
 
           // Write the workbook to a file and trigger download
-          XLSX.writeFile(wb, listName + ".xlsx");
-      } else {
-          console.error('No data found for list:', listName);
-      }
+      XLSX.writeFile(wb, listName + ".xlsx");
+    } else {
+      console.error('No data found for list:', listName);
+    }
   });
 }
 

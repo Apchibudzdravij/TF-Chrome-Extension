@@ -2,10 +2,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === "getArtistAndAboutInfo") {
 
     // Check if the desired elements are already in the DOM
-    if (document.querySelector(".user-info > h1") && document.querySelector(".skills > div > badge-list > ul > li > .profile-badge")) {
+    /*if (document.querySelector(".user-info > h1")){// && document.querySelector(".skills > div > badge-list > ul > li > .profile-badge")) {
       extractAndSendInfo();
       return;
-    }
+    }*/
 
     // If not, set up a MutationObserver
     const observer = new MutationObserver(function(mutationsList, observer) {
@@ -13,6 +13,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         if (mutation.type === 'childList') {
           // Check if the desired elements are now in the DOM
           if (document.querySelector(".user-info > h1") && document.querySelector(".skills > div > badge-list > ul > li > .profile-badge")) {
+            extractAndSendInfo();
+            observer.disconnect();  // Stop observing once we've found the elements
+            return;
+          } else if (document.querySelector(".user-info > h1") && document.querySelector(".resume-section-content .user-resume-summary-empty")) {
             extractAndSendInfo();
             observer.disconnect();  // Stop observing once we've found the elements
             return;
@@ -38,7 +42,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         contacts: contacts
     });
   }
-
   return true;  // This line is important when using asynchronous sendResponse
 });
 
@@ -59,12 +62,12 @@ function getAboutInfo() {
 
   // Extract the summary
   let summaryElement = document.querySelector(".resume-section-content .user-resume-summary-content");
+  //let noSummaryElement = document.querySelector(".resume-section-content .user-resume-summary-empty");
   aboutInfo.summary = summaryElement ? summaryElement.innerText.trim() : null;
-
   // Extract skills
   let skillsElements = document.querySelectorAll(".skills > div > badge-list > ul > li > .profile-badge");
   aboutInfo.skills = Array.from(skillsElements).map(el => el.innerText.trim());
-  
+
   // Extract software
   let softwareElements = document.querySelectorAll(".software > div > badge-list > ul > li > .profile-badge");
   aboutInfo.software = Array.from(softwareElements).map(el => el.innerText.trim());
