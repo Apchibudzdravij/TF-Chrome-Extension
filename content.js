@@ -1,21 +1,15 @@
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === "getArtistAndAboutInfo") {
-
-    // Check if the desired elements are already in the DOM
-    /*if (document.querySelector(".user-info > h1")){// && document.querySelector(".skills > div > badge-list > ul > li > .profile-badge")) {
-      extractAndSendInfo();
-      return;
-    }*/
-
-    // If not, set up a MutationObserver
+  
+  if (request.action && (request.action === "getArtistAndAboutInfo")) {
     const observer = new MutationObserver(function(mutationsList, observer) {
       for (let mutation of mutationsList) {
         if (mutation.type === 'childList') {
-          // Check if the desired elements are now in the DOM
+          // Check if the name and skills are now in the DOM
           if (document.querySelector(".user-info > h1") && document.querySelector(".skills > div > badge-list > ul > li > .profile-badge")) {
             extractAndSendInfo();
             observer.disconnect();  // Stop observing once we've found the elements
             return;
+          // Check if the name and EMPTY summary are now in the DOM
           } else if (document.querySelector(".user-info > h1") && document.querySelector(".resume-section-content .user-resume-summary-empty")) {
             extractAndSendInfo();
             observer.disconnect();  // Stop observing once we've found the elements
@@ -45,6 +39,44 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   return true;  // This line is important when using asynchronous sendResponse
 });
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  
+  if(request.method && (request.method == "getArtistUrl")){
+    const observer = new MutationObserver(function(mutationsList, observer) {
+      for (let mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          if (document.querySelectorAll("header > .align-items-start > a")) {
+            let artist = getArtistName();
+            sendResponse({
+              method: "getArtistUrl",
+              url: artist
+            })
+            observer.disconnect();
+            return;
+          } else {
+            sendResponse({
+              method: "noContent"
+            })
+            observer.disconnect();
+            return;
+          }
+        }    
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return true;
+  }  
+});
+
+function getArtistName() {
+  //let name = document.querySelectorAll(".project-author-name > h3 > a");
+  let name = document.querySelectorAll("header > .align-items-start > a");
+  let prelude = Array.from(name).map(el => el.href.trim());
+  const index = prelude[0].lastIndexOf("/");
+  const word = prelude[0].substring(index);
+  console.log(word);
+  return word;
+}
 
 function getArtistInfo() {
   let artistNameElement = document.querySelector(".user-info > h1");

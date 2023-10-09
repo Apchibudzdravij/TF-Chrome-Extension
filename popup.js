@@ -11,53 +11,96 @@ function saveUrlToList(comment) {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     let currentTab = tabs[0];
     let originalUrl = currentTab.url;
-
-    // Check if the URL matches the pattern https://www.artstation.com/USER/ANYTHING-ELSE
-    let match = originalUrl.match(/^https:\/\/www\.artstation\.com\/([^\/]+)\/.+/);
-
-    // If it matches, reconstruct the URL to be https://www.artstation.com/USER
-    if (match) {
-      originalUrl = `https://www.artstation.com/${match[1]}`;
-    }
-
     let profileUrl = originalUrl;
-    if (!profileUrl.endsWith('/profile')) {
-      profileUrl += '/profile';
-    }
-    let count = 0;
-    // Navigate to the profile page
-    chrome.tabs.update(currentTab.id, {url: profileUrl}, function(updatedTab) {
-      // Wait for the tab to be fully loaded before sending the message
-      chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-        if (info.status === 'complete' && tabId === updatedTab.id) {
-          chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
-            if (count === 0){
-              ++count;
-              let artistInfo = null;
-              if (response) {
-                artistInfo = {
-                  name: response.name,
-                  location: response.location,
-                  summary: response.summary,
-                  skills: response.skills,
-                  software: response.software,
-                  contacts: response.contacts
-                };
-              }
-              // Save the URL with artist info, date, time, and comment
-              saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
-
-              // Navigate back to the original URL
-              chrome.tabs.update(currentTab.id, {url: originalUrl});
-
-              // Remove the listener after it's executed to avoid multiple calls
-              chrome.tabs.onUpdated.removeListener(listener);
+    
+    if (originalUrl.indexOf('artwork') !== -1){
+      chrome.tabs.getSelected(null, function(tab) {
+        chrome.tabs.sendMessage(tab.id, {method: "getArtistUrl"}, function(response) {
+          alert(JSON.stringify(response));
+          if(response && (response.method=="getArtistUrl")){
+            if (response.url) {
+              profileUrl = `https://www.artstation.com${response.url}/profile`;
+              let count = 0;
+              chrome.tabs.update(currentTab.id, {url: profileUrl}, function(updatedTab) {
+                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                  if (info.status === 'complete' && tabId === updatedTab.id) {
+                    chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
+                      if (count === 0){
+                        ++count;
+                        let artistInfo = null;
+                        if (response) {
+                          artistInfo = {
+                            name: response.name,
+                            location: response.location,
+                            summary: response.summary,
+                            skills: response.skills,
+                            software: response.software,
+                            contacts: response.contacts
+                          };
+                        }
+                        saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
+                        chrome.tabs.update(currentTab.id, {url: originalUrl});
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        document.querySelector('#addUrl').disabled = false;
+                      }
+                    });
+                  }
+                });
+              });
+            } else {
               document.querySelector('#addUrl').disabled = false;
             }
-          });
-        }
+          }
+        });
       });
-    });
+    } else {
+      // Check if the URL matches the pattern https://www.artstation.com/USER/ANYTHING-ELSE
+      let match = originalUrl.match(/^https:\/\/www\.artstation\.com\/([^\/]+)\/.+/);
+
+      // If it matches, reconstruct the URL to be https://www.artstation.com/USER
+      if (match) {
+        originalUrl = `https://www.artstation.com/${match[1]}`;
+        profileUrl = originalUrl;
+      }
+
+      if (!profileUrl.endsWith('/profile')) {
+        profileUrl += '/profile';
+      }
+      let count = 0;
+      // Navigate to the profile page
+      chrome.tabs.update(currentTab.id, {url: profileUrl}, function(updatedTab) {
+        // Wait for the tab to be fully loaded before sending the message
+        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+          if (info.status === 'complete' && tabId === updatedTab.id) {
+            chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
+              if (count === 0){
+                ++count;
+                let artistInfo = null;
+                if (response) {
+                  artistInfo = {
+                    name: response.name,
+                    location: response.location,
+                    summary: response.summary,
+                    skills: response.skills,
+                    software: response.software,
+                    contacts: response.contacts
+                  };
+                }
+                // Save the URL with artist info, date, time, and comment
+                saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
+
+                // Navigate back to the original URL
+                chrome.tabs.update(currentTab.id, {url: originalUrl});
+
+                // Remove the listener after it's executed to avoid multiple calls
+                chrome.tabs.onUpdated.removeListener(listener);
+                document.querySelector('#addUrl').disabled = false;
+              }
+            });
+          }
+        });
+      });
+    }
   });
 }
 
@@ -83,11 +126,41 @@ function saveToStorage(url, comment, artistInfo, date) {
           list[item].status = tempStatus;
           let saveObj = {};
           saveObj[listName] = list;
+          let bodyObj = {
+            parm: "artist",
+            artist: {
+              url: url,
+              comment: comment,
+              artistInfo: {
+                name: artistInfo.name,
+                location: artistInfo.location,
+                summary: artistInfo.summary,
+                skills: artistInfo.skills,
+                software: artistInfo.software,
+                contacts: {
+                  contacts: artistInfo.contacts.contacts? artistInfo.contacts.contacts.join(', '): "",
+                  linkedin: artistInfo.contacts.linkedin? artistInfo.contacts.linkedin : '',
+                  facebook: artistInfo.contacts.facebook? artistInfo.contacts.facebook : '',
+                  instagram: artistInfo.contacts.instagram? artistInfo.contacts.instagram : '',
+                  twitter: artistInfo.contacts.twitter? artistInfo.contacts.twitter : ''
+                }
+              }
+            },
+            vacancy: listName
+          };
           chrome.storage.sync.set(saveObj, function() {
             console.log('URL saved to list:', listName);
             showFeedback('URL saved successfully!');
             populateExistingLists();
+            
             document.getElementById('addUrl').disabled = false;
+            fetch("https://tf-extension-assistant.onrender.com/upload", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(bodyObj)
+            });
           });
           selectNew();
           return;
@@ -114,7 +187,28 @@ function saveToStorage(url, comment, artistInfo, date) {
       });
       let saveObj = {};
       saveObj[listName] = list;
-
+      let bodyObj = {
+        parm: "artist",
+        artist: {
+          url: url,
+          comment: comment,
+          artistInfo: {
+            name: artistInfo.name,
+            location: artistInfo.location,
+            summary: artistInfo.summary,
+            skills: artistInfo.skills,
+            software: artistInfo.software,
+            contacts: {
+              contacts: artistInfo.contacts.contacts? artistInfo.contacts.contacts.join(', '): "",
+              linkedin: artistInfo.contacts.linkedin? artistInfo.contacts.linkedin : '',
+              facebook: artistInfo.contacts.facebook? artistInfo.contacts.facebook : '',
+              instagram: artistInfo.contacts.instagram? artistInfo.contacts.instagram : '',
+              twitter: artistInfo.contacts.twitter? artistInfo.contacts.twitter : ''
+            }
+          }
+        },
+        vacancy: listName
+      };
       chrome.storage.sync.set(saveObj, function() {
         console.log('URL saved to list:', listName);
         showFeedback('URL saved successfully!');
@@ -122,6 +216,14 @@ function saveToStorage(url, comment, artistInfo, date) {
         // Refresh the dropdown to reflect the changes
         populateExistingLists();
         document.getElementById('addUrl').disabled = false;
+
+        fetch("https://tf-extension-assistant.onrender.com/upload", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bodyObj)
+        });
       });
     });
     selectNew();
