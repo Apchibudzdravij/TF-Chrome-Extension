@@ -12,16 +12,14 @@ function saveUrlToList(comment) {
     let currentTab = tabs[0];
     let originalUrl = currentTab.url;
     let profileUrl = originalUrl;
-    
-    if (originalUrl.indexOf('artwork') !== -1){
-      chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.sendMessage(tab.id, {method: "getArtistUrl"}, function(response) {
-          alert(JSON.stringify(response));
+    if (originalUrl.indexOf('artwork') !== -1) {
+        chrome.tabs.sendMessage(currentTab.id, {method: "getArtistUrl"}, response => {
           if(response && (response.method=="getArtistUrl")){
             if (response.url) {
               profileUrl = `https://www.artstation.com${response.url}/profile`;
               let count = 0;
               chrome.tabs.update(currentTab.id, {url: profileUrl}, function(updatedTab) {
+                // Wait for the tab to be fully loaded before sending the message
                 chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
                   if (info.status === 'complete' && tabId === updatedTab.id) {
                     chrome.tabs.sendMessage(updatedTab.id, {action: "getArtistAndAboutInfo"}, function(response) {
@@ -38,8 +36,13 @@ function saveUrlToList(comment) {
                             contacts: response.contacts
                           };
                         }
+                        // Save the URL with artist info, date, time, and comment
                         saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
+        
+                        // Navigate back to the original URL
                         chrome.tabs.update(currentTab.id, {url: originalUrl});
+        
+                        // Remove the listener after it's executed to avoid multiple calls
                         chrome.tabs.onUpdated.removeListener(listener);
                         document.querySelector('#addUrl').disabled = false;
                       }
@@ -47,16 +50,19 @@ function saveUrlToList(comment) {
                   }
                 });
               });
-            } else {
+              document.querySelector('#addUrl').disabled = false;
+            } else if (response.method == "noContent") {
+              alert('No URL found'); 
+              document.querySelector('#addUrl').disabled = false;
+            }else {
               document.querySelector('#addUrl').disabled = false;
             }
           }
+          document.querySelector('#addUrl').disabled = false;
         });
-      });
     } else {
       // Check if the URL matches the pattern https://www.artstation.com/USER/ANYTHING-ELSE
       let match = originalUrl.match(/^https:\/\/www\.artstation\.com\/([^\/]+)\/.+/);
-
       // If it matches, reconstruct the URL to be https://www.artstation.com/USER
       if (match) {
         originalUrl = `https://www.artstation.com/${match[1]}`;
@@ -88,10 +94,8 @@ function saveUrlToList(comment) {
                 }
                 // Save the URL with artist info, date, time, and comment
                 saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
-
                 // Navigate back to the original URL
                 chrome.tabs.update(currentTab.id, {url: originalUrl});
-
                 // Remove the listener after it's executed to avoid multiple calls
                 chrome.tabs.onUpdated.removeListener(listener);
                 document.querySelector('#addUrl').disabled = false;
@@ -149,10 +153,8 @@ function saveToStorage(url, comment, artistInfo, date) {
             vacancy: listName
           };
           chrome.storage.sync.set(saveObj, function() {
-            console.log('URL saved to list:', listName);
             showFeedback('URL saved successfully!');
             populateExistingLists();
-            
             document.getElementById('addUrl').disabled = false;
             fetch("https://tf-extension-assistant.onrender.com/upload", {
               method: 'POST',
@@ -210,13 +212,10 @@ function saveToStorage(url, comment, artistInfo, date) {
         vacancy: listName
       };
       chrome.storage.sync.set(saveObj, function() {
-        console.log('URL saved to list:', listName);
         showFeedback('URL saved successfully!');
-              
         // Refresh the dropdown to reflect the changes
         populateExistingLists();
         document.getElementById('addUrl').disabled = false;
-
         fetch("https://tf-extension-assistant.onrender.com/upload", {
           method: 'POST',
           headers: {
@@ -243,7 +242,6 @@ function showFeedback(message) {
   feedbackDiv.style.padding = '5px 10px';
   feedbackDiv.style.borderRadius = '5px';
   document.body.appendChild(feedbackDiv);
-
   setTimeout(() => {
     document.body.removeChild(feedbackDiv);
   }, 3000);
@@ -253,10 +251,8 @@ function populateExistingLists() {
   // Get all keys (list names) from storage
   chrome.storage.sync.get(null, items => {
     let existingListsDropdown = document.querySelector('#existingListGroup');
-    
     // Clear the current options in the dropdown
     existingListsDropdown.innerHTML = '';
-
     // Populate the dropdown with the names of existing lists
     for (let listName in items) {
         let option = document.createElement('option');
@@ -264,7 +260,6 @@ function populateExistingLists() {
         option.textContent = listName;
         existingListsDropdown.appendChild(option);
     }
-    
     // After refreshing the dropdown, display the saved profiles for the selected list
     let selectedList = document.querySelector('#existingLists').value;
     if (selectedList) {
@@ -276,10 +271,9 @@ function populateExistingLists() {
 function deleteSelectedList() {
   let selectedList = document.querySelector('#existingLists').value;
   if (selectedList) {
-      // Add a confirmation dialog
+    // Add a confirmation dialog
     if (confirm('Are you sure you want to delete the entire list? This action cannot be undone.')) {
       chrome.storage.sync.remove(selectedList, () => {
-        console.log('List deleted:', selectedList);
         // Refresh the dropdown to reflect the changes
         populateExistingLists();
       });
@@ -302,7 +296,6 @@ function createSelectedList() {
       let saveObj = {};
       saveObj[newList] = [];
       chrome.storage.sync.set(saveObj, () => {
-        console.log('List created:', newList);
         populateExistingLists();
         showFeedback('List created successfully!');
         document.querySelector('#newListName').value = '';
@@ -393,14 +386,12 @@ function exportToExcel(listName) {
 
       // Create a new worksheet from the data
       var ws = XLSX.utils.aoa_to_sheet(xlsxData);
-
       // Append the worksheet to the workbook
       XLSX.utils.book_append_sheet(wb, ws, ws_name);
-
-          // Write the workbook to a file and trigger download
+      // Write the workbook to a file and trigger download
       XLSX.writeFile(wb, listName + ".xlsx");
     } else {
-      console.error('No data found for list:', listName);
+      alert('No data found for list:'+ listName);
     }
   });
 }
@@ -419,7 +410,6 @@ function displaySavedProfiles(listName) {
   // Filter options
   let thead = document.createElement('thead');
   let filterRow = document.createElement('tr');
-  //filterRow.className = 'filterDiv';
   let filterCell = document.createElement('th');
   filterCell.textContent = 'Filters:';
   
@@ -474,7 +464,7 @@ function displaySavedProfiles(listName) {
 
     if (list && list.length) {
       let tbody = document.createElement('tbody');
-      list.forEach(item => {//lambda expression is a little bit easier to read
+      list.forEach(item => { //lambda expression is a little bit easier to read
         let profileRow = document.createElement('tr');
         profileRow.className = 'profileItem';
 
@@ -552,11 +542,9 @@ function displaySavedProfiles(listName) {
       });
       profileListDiv.appendChild(table);
     } else {
-      //profileListDiv.appendChild(table);
       profileListDiv.innerHTML = '<p>No profiles saved.</p>';
     }
   });
-  //profileListDiv.appendChild(table);
 }
 
 // Search functionality
@@ -599,10 +587,8 @@ function filterProfiles(status) {
       let nameLink = profile.querySelector('.profileNameLink');
       if (status === 'All' || (nameLink && nameLink.getAttribute('data-status') === status)) {
           profile.style.display = 'table-row';
-          //profile.style.height = 'auto';
       } else {
           profile.style.display = 'none';
-          //profile.style.height = '0';
       }
   });
 }

@@ -18,9 +18,17 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         }
       }
     });
-
     // Start observing the document with the configured parameters
     observer.observe(document.body, { childList: true, subtree: true });
+  } else if (request.method && (request.method == "getArtistUrl")){
+    if (document.querySelectorAll(".project-author-name > h3 > a")) {
+      let artist = getArtistName();
+      sendResponse({
+        method: "getArtistUrl",
+        url: artist
+      });
+      return;
+    }
   }
 
   function extractAndSendInfo() {
@@ -39,49 +47,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   return true;  // This line is important when using asynchronous sendResponse
 });
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  
-  if(request.method && (request.method == "getArtistUrl")){
-    const observer = new MutationObserver(function(mutationsList, observer) {
-      for (let mutation of mutationsList) {
-        if (mutation.type === 'childList') {
-          if (document.querySelectorAll("header > .align-items-start > a")) {
-            let artist = getArtistName();
-            sendResponse({
-              method: "getArtistUrl",
-              url: artist
-            })
-            observer.disconnect();
-            return;
-          } else {
-            sendResponse({
-              method: "noContent"
-            })
-            observer.disconnect();
-            return;
-          }
-        }    
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    return true;
-  }  
-});
 
 function getArtistName() {
-  //let name = document.querySelectorAll(".project-author-name > h3 > a");
   let name = document.querySelectorAll("header > .align-items-start > a");
   let prelude = Array.from(name).map(el => el.href.trim());
   const index = prelude[0].lastIndexOf("/");
   const word = prelude[0].substring(index);
-  console.log(word);
   return word;
 }
 
 function getArtistInfo() {
   let artistNameElement = document.querySelector(".user-info > h1");
   let artistName = artistNameElement ? artistNameElement.innerText.trim() : null;
-
   // Extract the location
   let locationElement = document.querySelector('.addition-info-list > li > span');
   let artistLocation = locationElement ? locationElement.innerText.trim() : null;
@@ -99,7 +76,6 @@ function getAboutInfo() {
   // Extract skills
   let skillsElements = document.querySelectorAll(".skills > div > badge-list > ul > li > .profile-badge");
   aboutInfo.skills = Array.from(skillsElements).map(el => el.innerText.trim());
-
   // Extract software
   let softwareElements = document.querySelectorAll(".software > div > badge-list > ul > li > .profile-badge");
   aboutInfo.software = Array.from(softwareElements).map(el => el.innerText.trim());

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ArtStation Sourcing Tool",
-  "version": "0.0.20",
+  "version": "0.1.0",
   "description": "Extension to scrap data from ArtStation profiles and organize them in lists",
   "permissions": ["activeTab", "storage"],
   "background": {
