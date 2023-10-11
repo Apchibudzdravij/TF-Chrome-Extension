@@ -12,6 +12,10 @@ function saveUrlToList(comment) {
     let currentTab = tabs[0];
     let originalUrl = currentTab.url;
     let profileUrl = originalUrl;
+    if (originalUrl.indexOf('artstation.com') === -1) {
+      alert("This is not an artstation.com");
+      return;
+    }
     if (originalUrl.indexOf('artwork') !== -1) {
         chrome.tabs.sendMessage(currentTab.id, {method: "getArtistUrl"}, response => {
           if(response && (response.method=="getArtistUrl")){
@@ -122,8 +126,8 @@ function saveToStorage(url, comment, artistInfo, date) {
             : document.querySelector('#addQuestion').style.backgroundColor == 'gold'
             ? 'To review later'
             : 'Unmarked';
-          document.querySelector('#addStar').style.backgroundColor = '#007BFF';
-          document.querySelector('#addQuestion').style.backgroundColor = '#007BFF';
+          document.querySelector('#addStar').style.backgroundColor = '#99ebd1';
+          document.querySelector('#addQuestion').style.backgroundColor = '#99ebd1';
           
           list[item].comment = comment;
           list[item].date = date;
@@ -176,8 +180,8 @@ function saveToStorage(url, comment, artistInfo, date) {
       : document.querySelector('#addQuestion').style.backgroundColor == 'gold'
       ? 'To review later'
       : 'Unmarked';
-    document.querySelector('#addStar').style.backgroundColor = '#007BFF';
-    document.querySelector('#addQuestion').style.backgroundColor = '#007BFF';
+    document.querySelector('#addStar').style.backgroundColor = '#99ebd1';
+    document.querySelector('#addQuestion').style.backgroundColor = '#99ebd1';
     
     chrome.storage.sync.get(listName, function(data) {
       let list = data[listName] || [];
@@ -238,7 +242,7 @@ function showFeedback(message) {
   feedbackDiv.style.bottom = '10px';
   feedbackDiv.style.left = '50%';
   feedbackDiv.style.transform = 'translateX(-50%)';
-  feedbackDiv.style.backgroundColor = '#007BFF';
+  feedbackDiv.style.backgroundColor = '#99ebd1';
   feedbackDiv.style.color = 'white';
   feedbackDiv.style.padding = '5px 10px';
   feedbackDiv.style.borderRadius = '5px';
@@ -319,19 +323,19 @@ let question = document.querySelector("#addQuestion");
 star.onclick = () => {
   let starIsActive = star.style.backgroundColor == 'gold';
   if (starIsActive) {
-    star.style.backgroundColor = '#007BFF';
+    star.style.backgroundColor = '#99ebd1';
   } else {
     star.style.backgroundColor = 'gold';
-    question.style.backgroundColor = '#007BFF';
+    question.style.backgroundColor = '#99ebd1';
   }
 };
 question.onclick = () => {
   let questionIsActive = question.style.backgroundColor == 'gold';
   if (questionIsActive) {
-    question.style.backgroundColor = '#007BFF';
+    question.style.backgroundColor = '#99ebd1';
   } else {
     question.style.backgroundColor = 'gold';
-    star.style.backgroundColor = '#007BFF';
+    star.style.backgroundColor = '#99ebd1';
   }
 };
 

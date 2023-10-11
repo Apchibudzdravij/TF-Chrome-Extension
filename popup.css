@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   width: 280px;
-  background-color: #e6f7ff;
+  background-color: white;/* #e6f7ff;*/
   padding: 10px;
   overflow: auto;
 }
@@ -9,7 +9,7 @@ body {
 hr {
   border: 0;
   height: 1px;
-  background-color: #007BFF;
+  background-color: #99ebd1;
   margin-top: 5px;
   margin-bottom: 10px;
 }
@@ -17,9 +17,13 @@ hr {
 button, select, input {
   margin: 5px 0;
   padding: 5px 10px;
-  border: 1px solid #007BFF;
-  background-color: #007BFF;
-  color: white;
+  border: 1px solid #99ebd1;
+  background-color: #99ebd1;
+  color: black;
+  border-radius: 10px;
+}
+option {
+  background-color: #99ebd1;
   border-radius: 10px;
 }
 .button-row {
@@ -34,7 +38,7 @@ button, select, input {
   width: 30%; /* Adjusted to fit three buttons side by side */
 }
 button:hover, select:hover, input:hover {
-  background-color: #0056b3;
+  background-color: #a3ffe2;
 }
 #addList {
   width: 100%;
@@ -72,7 +76,7 @@ footer {
   font-size: 0.8em;
 }
 #footerLinks a {
-  color: #007BFF;
+  color: #366;
   text-decoration: none;
 }
 #footerLinks a:hover {
@@ -85,7 +89,7 @@ footer {
   padding: 0;
 }
 .importance {
-  background-color: #007BFF;
+  background-color: #99ebd1;
   margin-right: 3%;
 }
 img {
@@ -104,13 +108,13 @@ table {
 td, th {
   border: none;
   text-align: center;
-  border-bottom: 1px dotted #007BFF;
+  border-bottom: 1px dotted #99ebd1;
 }
 th {
-  border-bottom: 1px solid #007BFF;
+  border-bottom: 1px solid #99ebd1;
 }
 th button {
-  background-color: #007BFF;
+  background-color: #99ebd1;
   padding: 2px;
   margin-top: 5px;
 }
@@ -140,10 +144,11 @@ td:nth-child(2), td:nth-child(3), td:nth-child(4) {
   max-height: 150px; /* Adjust as needed */
   overflow-y: scroll;
   overflow-x: hidden;
-  border: 1px solid #007BFF;
+  border: 1px solid #99ebd1;
   margin-top: 5px;
   padding: 0;
   min-height: 25px;
+  border-radius: 10px;
 }
 #profileList::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome, Safari and Opera */
@@ -151,8 +156,8 @@ td:nth-child(2), td:nth-child(3), td:nth-child(4) {
 
 .profileLinkBtn {
   margin-left: 10px;
-  background-color: #007BFF;
-  color: white;
+  background-color: #99ebd1;
+  color: black;
   padding: 5px 10px;
   border: none;
   border-radius: 5px;
@@ -160,7 +165,7 @@ td:nth-child(2), td:nth-child(3), td:nth-child(4) {
   cursor: pointer;
 }
 .profileLinkBtn:hover {
-  background-color: #0056b3;
+  background-color: #a3ffe2;
 }
 
 div a {
@@ -187,16 +192,16 @@ div a {
   padding: 1px 1px; /* Minimal padding */
   font-size: 0.9em; /* Slightly smaller font size */
   cursor: pointer;
-  background-color: #007BFF;
+  background-color: #99ebd1;
   transition: background-color 0.3s;
-  color: #007BFF; /* Blue text for non-active filter buttons */
+  color: #99ebd1; /* Blue text for non-active filter buttons */
 }
 .statusBtn:hover {
   background-color: #c0c0c0;
 }
 .statusBtn.active {
   background-color: gold;
-  color: white;
+  color: black;
 }
 .statusBtn img {
   width: 25px;
@@ -210,7 +215,7 @@ div a {
 }
 .filterDiv button {
   background-color: #e0e0e0; /* Light gray for non-active filter buttons */
-  color: #007BFF; /* Blue text for non-active filter buttons */
+  color: #99ebd1; /* Blue text for non-active filter buttons */
   margin-right: 10px;
 }
 .filterDiv button:last-child {
