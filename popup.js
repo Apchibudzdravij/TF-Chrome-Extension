@@ -37,11 +37,9 @@ function saveUrlToList(comment) {
                           };
                         }
                         // Save the URL with artist info, date, time, and comment
-                        saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
-        
+                        saveToStorage(profileUrl, comment, artistInfo, formattedDate, formattedTime);
                         // Navigate back to the original URL
                         chrome.tabs.update(currentTab.id, {url: originalUrl});
-        
                         // Remove the listener after it's executed to avoid multiple calls
                         chrome.tabs.onUpdated.removeListener(listener);
                         document.querySelector('#addUrl').disabled = false;
@@ -60,7 +58,7 @@ function saveUrlToList(comment) {
           }
           document.querySelector('#addUrl').disabled = false;
         });
-    } else {
+    } else if (originalUrl.indexOf('dimension=') === -1) {
       // Check if the URL matches the pattern https://www.artstation.com/USER/ANYTHING-ELSE
       let match = originalUrl.match(/^https:\/\/www\.artstation\.com\/([^\/]+)\/.+/);
       // If it matches, reconstruct the URL to be https://www.artstation.com/USER
@@ -93,7 +91,7 @@ function saveUrlToList(comment) {
                   };
                 }
                 // Save the URL with artist info, date, time, and comment
-                saveToStorage(originalUrl, comment, artistInfo, formattedDate, formattedTime);
+                saveToStorage(profileUrl, comment, artistInfo, formattedDate, formattedTime);
                 // Navigate back to the original URL
                 chrome.tabs.update(currentTab.id, {url: originalUrl});
                 // Remove the listener after it's executed to avoid multiple calls
@@ -104,6 +102,9 @@ function saveUrlToList(comment) {
           }
         });
       });
+    } else {
+      alert("No selected artist found!");
+      document.querySelector('#addUrl').disabled = false;
     }
   });
 }

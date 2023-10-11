@@ -14,6 +14,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             extractAndSendInfo();
             observer.disconnect();  // Stop observing once we've found the elements
             return;
+          } else if (document.querySelector(".user-info > h1") && document.querySelector(".resume-section-content .user-resume-summary-content")) {
+            extractAndSendInfo();
+            observer.disconnect();  // Stop observing once we've found the elements
+            return;
           }
         }
       }
