@@ -197,7 +197,7 @@ div a {
   color: #99ebd1; /* Blue text for non-active filter buttons */
 }
 .statusBtn:hover {
-  background-color: #c0c0c0;
+  background-color: #a3ffe2;
 }
 .statusBtn.active {
   background-color: gold;
@@ -222,7 +222,7 @@ div a {
   margin-right: 5px;  /* ensures the last button doesn't have extra margin on the right */
 }
 .filterDiv button:hover {
-  background-color: #c0c0c0; /* Darker gray for hover effect on filter buttons */
+  background-color: #a3ffe2; /* Darker gray for hover effect on filter buttons */
 }
 /* CSS for the filter buttons' images */
 .filterButton img {
@@ -239,7 +239,7 @@ a[title]:hover:after {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #333;
+    background-color: #444;
     color: #fff;
     padding: 5px 10px;
     border-radius: 5px;
