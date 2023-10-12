@@ -14,6 +14,7 @@ function saveUrlToList(comment) {
     let profileUrl = originalUrl;
     if (originalUrl.indexOf('artstation.com') === -1) {
       alert("This is not an artstation.com");
+      document.querySelector('#addUrl').disabled = false;
       return;
     }
     if (originalUrl.indexOf('artwork') !== -1) {
@@ -420,9 +421,12 @@ function displaySavedProfiles(listName) {
   
   let allBtnCell = document.createElement('th');
   let allBtn = document.createElement('button');
+  allBtn.id = "filterAllButton";  // Add a class to the button
+  allBtn.className = "filterButton";
   allBtn.textContent = 'All';
   allBtn.addEventListener('click', function() {
-      filterProfiles('All');
+    document.querySelectorAll('.filterButton').forEach(btn => {btn.style.backgroundColor = '#99ebd1'});
+    filterProfiles('All');
   });
   allBtnCell.appendChild(allBtn);
 
@@ -435,7 +439,9 @@ function displaySavedProfiles(listName) {
   yesIcon.alt = 'Yes';
   yesBtn.appendChild(yesIcon);
   yesBtn.addEventListener('click', function() {
-      filterProfiles('Yes');
+    document.querySelectorAll('.filterButton').forEach(btn => {btn.style.backgroundColor = '#99ebd1'});
+    yesBtn.style.backgroundColor = 'gold';
+    filterProfiles('Yes');
   });
   yesBtnCell.appendChild(yesBtn);
 
@@ -448,7 +454,9 @@ function displaySavedProfiles(listName) {
   reviewLaterIcon.alt = 'Review Later';
   reviewLaterBtn.appendChild(reviewLaterIcon);
   reviewLaterBtn.addEventListener('click', function() {
-      filterProfiles('To review later');
+    document.querySelectorAll('.filterButton').forEach(btn => {btn.style.backgroundColor = '#99ebd1'});
+    reviewLaterBtn.style.backgroundColor = 'gold';
+    filterProfiles('To review later');
   });
   reviewLaterBtnCell.appendChild(reviewLaterBtn);
 

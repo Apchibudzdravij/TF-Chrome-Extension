@@ -84,9 +84,9 @@ footer {
 }
 
 #addStar, #addQuestion {
-  width: 15%;
-  height: 40px;
-  padding: 0;
+  width: 15.5%;
+  height: 30px;
+  padding: 2px;
 }
 .importance {
   background-color: #99ebd1;
@@ -113,15 +113,22 @@ td, th {
 th {
   border-bottom: 1px solid #99ebd1;
 }
+#filterAllButton {
+  height: 100%;
+  padding: 5px;
+}
 th button {
+  width: 75%;
+  height: 100%;
+  min-height: 100%;
   background-color: #99ebd1;
-  padding: 2px;
+  padding: 1px;
   margin-top: 5px;
 }
 td button {
   max-width: 75%;
   max-height: 50%;
-  padding: -5px;
+  padding: 5px;
 }
 td:first-child {
   text-align: left;
@@ -226,8 +233,8 @@ div a {
 }
 /* CSS for the filter buttons' images */
 .filterButton img {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   vertical-align: middle;
 }
 
